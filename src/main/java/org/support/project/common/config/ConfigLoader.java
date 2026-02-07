@@ -1,12 +1,12 @@
 package org.support.project.common.config;
 
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.simpleframework.xml.Serializer;
-import org.simpleframework.xml.core.Persister;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.support.project.common.exception.SystemException;
 import org.support.project.common.log.Log;
 import org.support.project.common.log.LogFactory;
@@ -14,7 +14,7 @@ import org.support.project.common.util.PropertyUtil;
 
 /**
  * ConfigLoader
- * 
+ *
  * @author Koda
  *
  */
@@ -24,9 +24,11 @@ public class ConfigLoader {
     /** config map */
     public static Map<String, Object> configMap = null;
 
+    private static final XmlMapper XML_MAPPER = new XmlMapper();
+
     /**
      * クラスパス上の設定ファイルを、指定の形式のファイル(XML)で読み込み オブジェクトにマッピングして返す
-     * 
+     *
      * @param configPath
      *            configPath
      * @param type
@@ -43,8 +45,8 @@ public class ConfigLoader {
 
         if (!configMap.containsKey(builder.toString())) {
             try {
-                Serializer serializer = new Persister(); // XMLを読み込める
-                T config = serializer.read(type, ConfigLoader.class.getResourceAsStream(configPath), false);
+                InputStream is = ConfigLoader.class.getResourceAsStream(configPath);
+                T config = XML_MAPPER.readValue(is, type);
                 configMap.put(builder.toString(), config);
             } catch (Exception e) {
                 throw new SystemException(e);
@@ -55,7 +57,7 @@ public class ConfigLoader {
 
     /**
      * 指定のオブジェクトをクローンして返す
-     * 
+     *
      * @param obj object
      * @return clone object
      */
@@ -68,7 +70,7 @@ public class ConfigLoader {
             Method method;
             try {
                 method = obj.getClass().getMethod("clone");
-                if (method.isAccessible()) {
+                if (method.canAccess(obj)) {
                     Object clone;
                     try {
                         clone = method.invoke(obj);
@@ -85,10 +87,10 @@ public class ConfigLoader {
         }
         Object target;
         try {
-            target = obj.getClass().newInstance();
+            target = obj.getClass().getDeclaredConstructor().newInstance();
             PropertyUtil.copyPropertyValue(obj, target);
             return target;
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (Exception e) {
             LOG.error("load fail.", e);
             throw new SystemException("errors.common.call", e);
         }
@@ -96,11 +98,11 @@ public class ConfigLoader {
 
     /**
      * クラスパス上の設定ファイルを、指定の形式のファイル(XML)で読み込み オブジェクトにマッピングして返す
-     * 
+     *
      * readは一度実行すると結果を保持し続ける。 このため、どこかで設定を変えると、システム全体として設定が置き換わる。 そこでloadでは、毎回オブジェクトをクローンして渡すようにする。 （読み込む設定はCloneableを実装すること）
-     * 
+     *
      * Cloneableを実装していない場合、PropertyUtil.copyPropertyValueで値をコピーして渡す
-     * 
+     *
      * @param configPath configPath
      * @param type type
      * @param <T> type

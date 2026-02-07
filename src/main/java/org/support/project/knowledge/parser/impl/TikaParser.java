@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.apache.tika.metadata.Metadata;
+import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.ParsingReader;
@@ -61,7 +62,7 @@ public class TikaParser implements Parser {
         Metadata metadata = new Metadata();
         Path filename = path.getFileName();
         if (filename != null) {
-            metadata.set(Metadata.RESOURCE_NAME_KEY, filename.toString());
+            metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, filename.toString());
         }
 
         InputStream inputStream = Files.newInputStream(path);

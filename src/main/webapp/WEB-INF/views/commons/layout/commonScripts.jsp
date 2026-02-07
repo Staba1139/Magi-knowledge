@@ -20,7 +20,7 @@
 <script type="text/javascript" src="<%= request.getContextPath() %>/bower/notifyjs/dist/notify-combined.min.js"></script>
 <script type="text/javascript" src="<%= request.getContextPath() %>/bower/notifyjs/dist/styles/bootstrap/notify-bootstrap.js"></script>
 
-<script type="text/javascript" src="<%= request.getContextPath() %>/bower/highlightjs/highlight.pack.js"></script>
+<script type="text/javascript" src="<%= request.getContextPath() %>/bower/highlightjs/highlight.min.js"></script>
 
 <script type="text/javascript" src="<%= request.getContextPath() %>/bower/jquery-oembed-all/jquery.oembed.js"></script>
 

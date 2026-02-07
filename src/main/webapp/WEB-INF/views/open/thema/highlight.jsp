@@ -23,7 +23,7 @@ body {
 }
 </style>
 
-<script type="text/javascript" src="<%= request.getContextPath() %>/bower/highlightjs/highlight.pack.js"></script>
+<script type="text/javascript" src="<%= request.getContextPath() %>/bower/highlightjs/highlight.min.js"></script>
 
 <script type="text/javascript">
 hljs.initHighlightingOnLoad();

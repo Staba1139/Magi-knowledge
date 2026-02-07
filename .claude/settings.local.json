@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(curl:*)",
+      "Bash(mvn clean compile:*)",
+      "Bash(cmd.exe /c \"where mvn\")",
+      "Bash(cmd.exe /c \"where mvn 2>nul & where mvn.cmd 2>nul & dir /s /b C:\\\\apache-maven*\\\\bin\\\\mvn.cmd 2>nul & dir /s /b \"\"C:\\\\Program Files\\\\apache-maven*\"\" 2>nul & dir /s /b C:\\\\tools\\\\*maven*\\\\bin\\\\mvn.cmd 2>nul & dir /s /b C:\\\\Users\\\\extmp\\\\.m2\\\\wrapper\\\\dists\\\\*\\\\*\\\\bin\\\\mvn.cmd 2>nul\")",
+      "Bash(ls:*)",
+      "Bash(cmd.exe /c \"java -version 2>&1\")",
+      "Bash(cmd.exe /c \"where java 2>&1\")",
+      "Bash(cmd.exe /c \"cd /d E:\\\\GitHub\\\\Magi-knowledge && set MVNW_VERBOSE=true && mvnw.cmd clean compile\")",
+      "Bash(cmd.exe /c \"java -version\")",
+      "Bash(cmd.exe /c \"powershell -noprofile -command \"\"Write-Output ''PS works''\"\"\")",
+      "Bash(java:*)",
+      "Bash(powershell.exe -noprofile -command \"Write-Output ''PS works''\")",
+      "Bash(chmod:*)",
+      "Bash(bash mvnw:*)",
+      "Bash(\"$HOME/.local/share/mvnw/apache-maven-3.9.9/bin/mvn\" clean compile)",
+      "WebFetch(domain:search.maven.org)",
+      "WebFetch(domain:www.webjars.org)",
+      "WebFetch(domain:mvnrepository.com)",
+      "WebFetch(domain:repo1.maven.org)",
+      "Bash(\"$HOME/.local/share/mvnw/apache-maven-3.9.9/bin/mvn\" dependency:tree -Dincludes=org.webjars.npm:semver)",
+      "Bash(/c/Users/extmp/.local/share/mvnw/apache-maven-3.9.9/bin/mvn dependency:tree -Dincludes=org.webjars.npm:semver)",
+      "Bash(powershell.exe -command \"Get-ChildItem -Path ''C:\\\\Users\\\\extmp\\\\.m2\\\\repository\\\\org\\\\webjars\\\\npm\\\\semver'' -Recurse -Filter ''*.lastUpdated'' | ForEach-Object { Write-Output $_.FullName }\")",
+      "Bash(powershell.exe -command \"Get-ChildItem -Path ''C:\\\\Users\\\\extmp\\\\.m2\\\\repository\\\\org\\\\webjars\\\\npm\\\\semver'' -Directory | ForEach-Object { Write-Output $_.Name }\")",
+      "Bash(powershell.exe:*)",
+      "Bash(for pkg in diff2html bootstrap-fileinput bootstrap-table tableexport.jquery.plugin)",
+      "Bash(do echo \"=== $pkg ===\")",
+      "Bash(done)",
+      "Bash(/c/Users/extmp/.local/share/mvnw/apache-maven-3.9.9/bin/mvn dependency:tree -e)",
+      "Bash(/c/Users/extmp/.local/share/mvnw/apache-maven-3.9.9/bin/mvn clean compile:*)",
+      "Bash(jar tf:*)",
+      "Bash(/c/Users/extmp/.local/share/mvnw/apache-maven-3.9.9/bin/mvn:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)"
+    ]
+  }
+}
