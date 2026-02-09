@@ -123,6 +123,14 @@ public class AppConfig {
     }
 
     /**
+     * 環境変数のキー文字列を設定（XMLデシリアライズ用）
+     * @param envKey env key
+     */
+    public void setEnvKey(String envKey) {
+        AppConfig.initEnvKey(envKey);
+    }
+
+    /**
      * パスの中に含まれる予約語を置換
      * 
      * @param path path

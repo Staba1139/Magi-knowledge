@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.support.project.common.exception.SystemException;
 import org.support.project.common.log.Log;
@@ -24,7 +25,11 @@ public class ConfigLoader {
     /** config map */
     public static Map<String, Object> configMap = null;
 
-    private static final XmlMapper XML_MAPPER = new XmlMapper();
+    private static final XmlMapper XML_MAPPER;
+    static {
+        XML_MAPPER = new XmlMapper();
+        XML_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
 
     /**
      * クラスパス上の設定ファイルを、指定の形式のファイル(XML)で読み込み オブジェクトにマッピングして返す
