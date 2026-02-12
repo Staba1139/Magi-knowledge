@@ -2,7 +2,6 @@ package org.support.project.ormapping.config.impl;
 
 import java.io.InputStream;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.support.project.common.config.Resources;
 import org.support.project.common.log.Log;
 import org.support.project.common.log.LogFactory;
@@ -75,7 +74,7 @@ public class ConnectionConfigPropertiesLoader implements ConnectionConfigLoader 
 
 	@Override
 	public ConnectionConfig load(InputStream in) throws ORMappingException {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 	
 	

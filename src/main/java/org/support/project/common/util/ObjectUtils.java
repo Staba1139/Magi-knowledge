@@ -14,7 +14,7 @@ import org.support.project.common.exception.SystemException;
  * @author Koda
  *
  */
-public abstract class ObjectUtils extends org.apache.commons.lang.ObjectUtils {
+public abstract class ObjectUtils extends org.apache.commons.lang3.ObjectUtils {
 
     /**
      * 実行するメソッドの検索

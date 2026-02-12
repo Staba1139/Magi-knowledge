@@ -1,6 +1,6 @@
 package org.support.project.knowledge.bat;
 
-import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.h2.tools.Server;
 import org.support.project.common.config.ConfigLoader;
 import org.support.project.common.log.Log;

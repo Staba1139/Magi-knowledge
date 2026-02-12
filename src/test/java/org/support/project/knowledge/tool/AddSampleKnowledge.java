@@ -92,7 +92,7 @@ public class AddSampleKnowledge {
         loginedUser.setRoles(rolesEntities);
 
         KnowledgesEntity entity = new KnowledgesEntity();
-        entity.setTitle("sample-" + org.apache.commons.lang.StringUtils.abbreviate(line, 50));
+        entity.setTitle("sample-" + org.apache.commons.lang3.StringUtils.abbreviate(line, 50));
         entity.setContent(line);
         String tags = "";
         if (count % 5 == 0) {
@@ -121,7 +121,7 @@ public class AddSampleKnowledge {
         
         KnowledgeLogic.get().insert(data, loginedUser, false);
 
-        LOG.info("サンプル登録 :" + org.apache.commons.lang.StringUtils.abbreviate(line, 50));
+        LOG.info("サンプル登録 :" + org.apache.commons.lang3.StringUtils.abbreviate(line, 50));
         count++;
 
     }

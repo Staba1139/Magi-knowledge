@@ -13,7 +13,7 @@ import java.util.List;
  * @author Koda
  *
  */
-public abstract class StringUtils extends org.apache.commons.lang.StringUtils {
+public abstract class StringUtils extends org.apache.commons.lang3.StringUtils {
     /** 全角英数字 */
     private static String sZen = "０１２３４５６７８９" + "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ" + "ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ";
     /** 半角英数字 */
