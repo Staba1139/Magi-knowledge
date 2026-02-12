@@ -42,8 +42,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
-    <tomcat.version>9.0.98</tomcat.version>
-    <lucene.version>4.10.4</lucene.version>
+    <tomcat.version>9.0.110</tomcat.version>
+    <lucene.version>9.12.3</lucene.version>
   </properties>
 
   <!-- ===== 追加リポジトリ（必要なら残す） ===== -->
@@ -239,10 +239,10 @@
     <!-- tomcat-embed-logging-juli 削除（廃止済みアーティファクト） -->
 
     <dependency>
-      <groupId>com.h2database</groupId><artifactId>h2</artifactId><version>1.4.196</version>
+      <groupId>com.h2database</groupId><artifactId>h2</artifactId><version>2.3.232</version>
     </dependency>
     <dependency>
-      <groupId>org.postgresql</groupId><artifactId>postgresql</artifactId><version>42.7.4</version>
+      <groupId>org.postgresql</groupId><artifactId>postgresql</artifactId><version>42.7.7</version>
     </dependency>
 
     <dependency>
@@ -261,15 +261,15 @@
       <groupId>javax.servlet</groupId><artifactId>jstl</artifactId><version>1.2</version>
     </dependency>
 
-    <!-- Lucene は後方互換優先で据え置き -->
+    <!-- Lucene 9.x -->
     <dependency>
       <groupId>org.apache.lucene</groupId><artifactId>lucene-core</artifactId><version>${lucene.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.lucene</groupId><artifactId>lucene-analyzers-common</artifactId><version>${lucene.version}</version>
+      <groupId>org.apache.lucene</groupId><artifactId>lucene-analysis-common</artifactId><version>${lucene.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.lucene</groupId><artifactId>lucene-analyzers-kuromoji</artifactId><version>${lucene.version}</version>
+      <groupId>org.apache.lucene</groupId><artifactId>lucene-analysis-kuromoji</artifactId><version>${lucene.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.lucene</groupId><artifactId>lucene-queryparser</artifactId><version>${lucene.version}</version>
@@ -280,10 +280,10 @@
 
     <!-- Tika 2.x -->
     <dependency>
-      <groupId>org.apache.tika</groupId><artifactId>tika-core</artifactId><version>2.9.2</version>
+      <groupId>org.apache.tika</groupId><artifactId>tika-core</artifactId><version>3.2.2</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.tika</groupId><artifactId>tika-parsers-standard-package</artifactId><version>2.9.2</version>
+      <groupId>org.apache.tika</groupId><artifactId>tika-parsers-standard-package</artifactId><version>3.2.2</version>
     </dependency>
 
     <dependency>
@@ -307,7 +307,7 @@
       <groupId>com.jcabi</groupId><artifactId>jcabi-log</artifactId><version>0.24.1</version>
     </dependency>
     <dependency>
-      <groupId>commons-lang</groupId><artifactId>commons-lang</artifactId><version>2.6</version>
+      <groupId>org.apache.commons</groupId><artifactId>commons-lang3</artifactId><version>3.17.0</version>
     </dependency>
     <dependency>
       <groupId>commons-collections</groupId><artifactId>commons-collections</artifactId><version>3.2.2</version>
@@ -331,7 +331,7 @@
     </dependency>
 
     <dependency>
-      <groupId>commons-fileupload</groupId><artifactId>commons-fileupload</artifactId><version>1.5</version>
+      <groupId>commons-fileupload</groupId><artifactId>commons-fileupload</artifactId><version>1.6.0</version>
     </dependency>
 
     <dependency>
@@ -354,7 +354,7 @@
     </dependency>
     <!-- simple-xml → Jackson XML に移行 -->
     <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId><artifactId>jackson-dataformat-xml</artifactId><version>2.17.0</version>
+      <groupId>com.fasterxml.jackson.dataformat</groupId><artifactId>jackson-dataformat-xml</artifactId><version>2.18.2</version>
     </dependency>
 
     <!-- Java17 で必要になる JAXB / Activation -->
