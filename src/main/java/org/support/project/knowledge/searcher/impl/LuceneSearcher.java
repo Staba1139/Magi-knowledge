@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.ja.JapaneseAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -16,15 +17,14 @@ import org.apache.lucene.queryparser.classic.QueryParser.Operator;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.TopDocsCollector;
-import org.apache.lucene.search.TopFieldCollector;
-import org.apache.lucene.search.TopScoreDocCollector;
-import org.apache.lucene.search.TotalHitCountCollector;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TopFieldCollectorManager;
+import org.apache.lucene.search.TopScoreDocCollectorManager;
+import org.apache.lucene.search.TotalHitCountCollectorManager;
 import org.apache.lucene.search.highlight.Formatter;
 import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
@@ -32,7 +32,6 @@ import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.apache.lucene.search.highlight.SimpleSpanFragmenter;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
 import org.support.project.common.config.ConfigLoader;
 import org.support.project.common.log.Log;
 import org.support.project.common.log.LogFactory;
@@ -52,7 +51,7 @@ import org.support.project.web.exception.InvalidParamException;
 
 /**
  * Luceneを使った検索
- * 
+ *
  * @author Koda
  *
  */
@@ -84,12 +83,11 @@ public class LuceneSearcher implements Searcher {
     public static final String FIELD_LABEL_TEMPLATE = LuceneIndexer.FIELD_LABEL_TEMPLATE;
 
     /** 検索キーワードを抽出するアナライザー N-gramではなく形態素解析を利用 */
-    // private Analyzer analyzer = new SimpleAnalyzer(Version.LUCENE_4_10_2);
     private Analyzer analyzer = new JapaneseAnalyzer();
 
     /**
      * Indexが格納されているディレクトリのパスを取得
-     * 
+     *
      * @return
      */
     private String getIndexPath() {
@@ -100,7 +98,7 @@ public class LuceneSearcher implements Searcher {
 
     /**
      * 検索
-     * @throws InvalidParamException 
+     * @throws InvalidParamException
      */
     public List<SearchResultValue> search(final SearchingValue value, int keywordSortType) throws IOException, InvalidTokenOffsetsException, InvalidParamException {
         List<SearchResultValue> resultValues = new ArrayList<>();
@@ -114,9 +112,9 @@ public class LuceneSearcher implements Searcher {
             return resultValues;
         }
 
-        IndexReader reader = DirectoryReader.open(FSDirectory.open(indexDir));
+        IndexReader reader = DirectoryReader.open(FSDirectory.open(indexDir.toPath()));
         IndexSearcher searcher = new IndexSearcher(reader);
-        
+
         Query query = null;
         try {
             query = structQuery(value);
@@ -130,45 +128,44 @@ public class LuceneSearcher implements Searcher {
             throw new InvalidParamException(msg);
         }
 
-        TotalHitCountCollector countCollector = new TotalHitCountCollector();
-        searcher.search(query, countCollector);
-        log.debug("Found " + countCollector.getTotalHits() + " hits.");
+        Integer totalHits = searcher.search(query, new TotalHitCountCollectorManager());
+        log.debug("Found " + totalHits + " hits.");
 
-        TopDocsCollector<? extends ScoreDoc> collector;
+        int numHits = value.getOffset() + value.getLimit();
+        TopDocs topDocs;
         if (StringUtils.isNotEmpty(value.getKeyword())) {
             switch (keywordSortType) {
             case KnowledgeLogic.KEYWORD_SORT_TYPE_TIME:
                 Sort sort = new Sort(new SortField(FIELD_LABEL_TIME, SortField.Type.LONG, true));
-                collector = TopFieldCollector.create(sort, value.getOffset() + value.getLimit(), true, false, false, false);
+                topDocs = searcher.search(query, numHits, sort);
                 break;
             case KnowledgeLogic.KEYWORD_SORT_TYPE_SCORE:
             default:
-                collector = TopScoreDocCollector.create(value.getOffset() + value.getLimit(), true);
+                topDocs = searcher.search(query, numHits);
                 break;
             }
         } else {
-            // Sort sort = new Sort(new SortField(FIELD_LABEL_ID, SortField.Type.INT, true));
-            // Sort sort = Sort.INDEXORDER;
             Sort sort = new Sort(new SortField(FIELD_LABEL_TIME, SortField.Type.LONG, true));
-            collector = TopFieldCollector.create(sort, value.getOffset() + value.getLimit(), true, false, false, false);
+            topDocs = searcher.search(query, numHits, sort);
         }
 
-        searcher.search(query, collector);
-        ScoreDoc[] hits = collector.topDocs(value.getOffset(), value.getOffset() + value.getLimit()).scoreDocs;
+        ScoreDoc[] allHits = topDocs.scoreDocs;
+        int start = Math.min(value.getOffset(), allHits.length);
+        int end = Math.min(value.getOffset() + value.getLimit(), allHits.length);
 
-        log.debug("Found " + hits.length + " hits.");
-        for (int i = 0; i < hits.length; ++i) {
-            int docId = hits[i].doc;
+        log.debug("Found " + (end - start) + " hits.");
+        for (int i = start; i < end; ++i) {
+            int docId = allHits[i].doc;
             Document d = searcher.doc(docId);
             if (log.isDebugEnabled()) {
                 log.debug((i + 1) + ". \n" + "\t[id]\t" + d.get(FIELD_LABEL_ID) + "\n" + "\t[tag]\t" + d.get(FIELD_LABEL_TAGS) + "\n" + "\t[user]\t"
-                        + d.get(FIELD_LABEL_USERS) + "\n" + "\t[group]\t" + d.get(FIELD_LABEL_GROUPS) + "\n" + "\t[score]\t" + hits[i].score + "\n");
+                        + d.get(FIELD_LABEL_USERS) + "\n" + "\t[group]\t" + d.get(FIELD_LABEL_GROUPS) + "\n" + "\t[score]\t" + allHits[i].score + "\n");
             }
 
             SearchResultValue resultValue = new SearchResultValue();
             resultValue.setType(Integer.parseInt(d.get(FIELD_LABEL_TYPE)));
             resultValue.setId(d.get(FIELD_LABEL_ID));
-            resultValue.setScore(hits[i].score);
+            resultValue.setScore(allHits[i].score);
             resultValue.setTitle(d.get(FIELD_LABEL_TITLE));
             resultValue.setContents(d.get(FIELD_LABEL_CONTENTS));
 
@@ -198,7 +195,7 @@ public class LuceneSearcher implements Searcher {
 
     /**
      * クエリの組み立て
-     * 
+     *
      * @param value
      * @return
      * @throws ParseException
@@ -207,7 +204,7 @@ public class LuceneSearcher implements Searcher {
 
         // クエリー組み立て
         // 条件が指定されていれば、containerに入れていく
-        BooleanQuery container = new BooleanQuery();
+        BooleanQuery.Builder containerBuilder = new BooleanQuery.Builder();
 
         if (StringUtils.isNotEmpty(value.getKeyword())) {
             if (value.getKeyword().startsWith("*") || value.getKeyword().startsWith("?")) {
@@ -217,9 +214,9 @@ public class LuceneSearcher implements Searcher {
             }
 
             // キーワード検索(内容かパス名にキーワードがあるか)
-            BooleanQuery miniContainer = new BooleanQuery();
+            BooleanQuery.Builder miniBuilder = new BooleanQuery.Builder();
 
-            QueryParser queryParser = new QueryParser(Version.LUCENE_4_10_2, FIELD_LABEL_TITLE, analyzer);
+            QueryParser queryParser = new QueryParser(FIELD_LABEL_TITLE, analyzer);
             queryParser.setDefaultOperator(Operator.OR);
             Query query;
             try {
@@ -227,74 +224,73 @@ public class LuceneSearcher implements Searcher {
             } catch (org.apache.lucene.queryparser.classic.ParseException e) {
                 query = queryParser.parse(value.getKeyword().replaceAll("/", ""));
             }
-            miniContainer.add(query, BooleanClause.Occur.SHOULD);
+            miniBuilder.add(query, BooleanClause.Occur.SHOULD);
 
-            queryParser = new QueryParser(Version.LUCENE_4_10_2, FIELD_LABEL_CONTENTS, analyzer);
+            queryParser = new QueryParser(FIELD_LABEL_CONTENTS, analyzer);
             queryParser.setDefaultOperator(Operator.OR);
             try {
                 query = queryParser.parse(value.getKeyword());
             } catch (org.apache.lucene.queryparser.classic.ParseException e) {
                 query = queryParser.parse(value.getKeyword().replaceAll("/", ""));
             }
-            miniContainer.add(query, BooleanClause.Occur.SHOULD);
+            miniBuilder.add(query, BooleanClause.Occur.SHOULD);
 
-            container.add(miniContainer, BooleanClause.Occur.MUST);
+            containerBuilder.add(miniBuilder.build(), BooleanClause.Occur.MUST);
         } else {
-            Query query = NumericRangeQuery.newIntRange(FIELD_LABEL_TYPE, 1, IndexType.knowledge.getValue(), IndexType.knowledge.getValue(), true,
-                    true);
-            container.add(query, BooleanClause.Occur.MUST);
+            Query query = IntPoint.newRangeQuery(FIELD_LABEL_TYPE, IndexType.knowledge.getValue(), IndexType.knowledge.getValue());
+            containerBuilder.add(query, BooleanClause.Occur.MUST);
         }
 
         if (StringUtils.isNotEmpty(value.getTags())) {
-            QueryParser queryParser = new QueryParser(Version.LUCENE_4_10_2, FIELD_LABEL_TAGS, analyzer);
+            QueryParser queryParser = new QueryParser(FIELD_LABEL_TAGS, analyzer);
             queryParser.setDefaultOperator(Operator.AND);
             Query query = queryParser.parse(value.getTags());
-            container.add(query, BooleanClause.Occur.MUST);
+            containerBuilder.add(query, BooleanClause.Occur.MUST);
         }
         if (StringUtils.isNotEmpty(value.getUsers()) || StringUtils.isNotEmpty(value.getGroups())) {
             // ユーザかグループのどちらかにアクセス権があること
-            BooleanQuery miniContainer = new BooleanQuery();
+            BooleanQuery.Builder miniBuilder = new BooleanQuery.Builder();
             QueryParser queryParser;
             Query query;
 
             if (StringUtils.isNotEmpty(value.getUsers())) {
-                queryParser = new QueryParser(Version.LUCENE_4_10_2, FIELD_LABEL_USERS, analyzer);
+                queryParser = new QueryParser(FIELD_LABEL_USERS, analyzer);
                 queryParser.setDefaultOperator(Operator.OR);
                 query = queryParser.parse(value.getUsers());
-                miniContainer.add(query, BooleanClause.Occur.SHOULD);
+                miniBuilder.add(query, BooleanClause.Occur.SHOULD);
             }
 
             if (StringUtils.isNotEmpty(value.getGroups())) {
-                queryParser = new QueryParser(Version.LUCENE_4_10_2, FIELD_LABEL_GROUPS, analyzer);
+                queryParser = new QueryParser(FIELD_LABEL_GROUPS, analyzer);
                 queryParser.setDefaultOperator(Operator.OR);
                 query = queryParser.parse(value.getGroups());
-                miniContainer.add(query, BooleanClause.Occur.SHOULD);
+                miniBuilder.add(query, BooleanClause.Occur.SHOULD);
             }
 
-            container.add(miniContainer, BooleanClause.Occur.MUST);
+            containerBuilder.add(miniBuilder.build(), BooleanClause.Occur.MUST);
         }
         if (StringUtils.isNotEmpty(value.getCreators())) {
-            QueryParser queryParser = new QueryParser(Version.LUCENE_4_10_2, FIELD_LABEL_CREATE_USER, analyzer);
+            QueryParser queryParser = new QueryParser(FIELD_LABEL_CREATE_USER, analyzer);
             queryParser.setDefaultOperator(Operator.OR);
             Query query = queryParser.parse(value.getCreators());
-            container.add(query, BooleanClause.Occur.MUST);
+            containerBuilder.add(query, BooleanClause.Occur.MUST);
         }
-        
+
         if (value.getTemplates() != null && !value.getTemplates().isEmpty()) {
-            BooleanQuery miniContainer = new BooleanQuery();
+            BooleanQuery.Builder miniBuilder = new BooleanQuery.Builder();
             for (Integer templatesId: value.getTemplates()) {
-                Query query = NumericRangeQuery.newIntRange(FIELD_LABEL_TEMPLATE, 1, templatesId, templatesId, true, true);
-                miniContainer.add(query, BooleanClause.Occur.SHOULD);
+                Query query = IntPoint.newRangeQuery(FIELD_LABEL_TEMPLATE, templatesId, templatesId);
+                miniBuilder.add(query, BooleanClause.Occur.SHOULD);
             }
-            container.add(miniContainer, BooleanClause.Occur.MUST);
+            containerBuilder.add(miniBuilder.build(), BooleanClause.Occur.MUST);
         }
-        
-        return container;
+
+        return containerBuilder.build();
     }
 
     /**
      * 検索キーワードのハイライト
-     * 
+     *
      * @param query
      * @param analyzer
      * @param fieldName
@@ -306,7 +302,6 @@ public class LuceneSearcher implements Searcher {
     private String getHighlightedField(Query query, Analyzer analyzer, String fieldName, String fieldValue)
             throws IOException, InvalidTokenOffsetsException {
         Formatter formatter = new SimpleHTMLFormatter("<span class=\"mark\">", "</span>");
-        // Formatter formatter = new SimpleHTMLFormatter();
         QueryScorer queryScorer = new QueryScorer(query);
         Highlighter highlighter = new Highlighter(formatter, queryScorer);
         highlighter.setTextFragmenter(new SimpleSpanFragmenter(queryScorer, CONTENTS_LIMIT_LENGTH));

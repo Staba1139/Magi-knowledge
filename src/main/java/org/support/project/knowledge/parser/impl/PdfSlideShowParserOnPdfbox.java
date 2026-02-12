@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -35,7 +36,7 @@ public class PdfSlideShowParserOnPdfbox extends AbstractSlideShowParser implemen
             /*
              * Solution for the 2.0 version:
              */
-            PDDocument document = PDDocument.load(inputFile);
+            PDDocument document = Loader.loadPDF(inputFile);
             PDFRenderer pdfRenderer = new PDFRenderer(document);
             for (int page = 0; page < document.getNumberOfPages(); ++page) {
                 BufferedImage org = pdfRenderer.renderImageWithDPI(page, 100, ImageType.RGB);

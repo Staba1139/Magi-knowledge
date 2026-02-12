@@ -12,7 +12,6 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -189,8 +188,8 @@ public abstract class TestCommon {
         Analyzer analyzer = new JapaneseAnalyzer();
         AppConfig appConfig = ConfigLoader.load(AppConfig.APP_CONFIG, AppConfig.class);
         File indexDir = new File(appConfig.getIndexPath());
-        Directory dir = FSDirectory.open(indexDir);
-        IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_4_10_2, analyzer);
+        Directory dir = FSDirectory.open(indexDir.toPath());
+        IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
         iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
         IndexWriter writer = null;
         try {
